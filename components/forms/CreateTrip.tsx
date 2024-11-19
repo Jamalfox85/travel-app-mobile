@@ -76,6 +76,7 @@ export default function CreateTrip({ tripCreated }: { tripCreated: () => void })
     const placeDetailsData = await placeDetailsResponse.json();
 
     const coordinates = placeDetailsData.result?.geometry.location;
+    console.log("Coordinates", coordinates.lat);
     setSelectedLocationCoordinates({ latitude: coordinates.lat, longitude: coordinates.lng });
 
     const photoReferenceIds = await placeDetailsData.result?.photos.map((photo: any) => photo.photo_reference);

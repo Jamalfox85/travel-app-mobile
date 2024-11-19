@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View, Linking, Platform, ScrollView } from "react-native";
+import { StyleSheet, Text, View, Platform, ScrollView, Linking } from "react-native";
+
 import React, { useState, useEffect } from "react";
 import { Trip } from "@/types";
 import { useLocalSearchParams, Link, useRouter } from "expo-router";
@@ -7,6 +8,19 @@ import { formatDateFrontEnd } from "@/utils";
 import moment from "moment";
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import call from "react-native-phone-call";
+import { TravelApiCall } from "@/services/ApiService";
+import { Toast } from "toastify-react-native";
+
+interface ActivityRecommendation {
+  poi: {
+    name: string;
+    phone: string;
+    url: string;
+  };
+  address: {
+    freeformAddress: string;
+  };
+}
 
 export default function TripDetails() {
   const router = useRouter();
@@ -22,23 +36,12 @@ export default function TripDetails() {
   ]);
 
   useEffect(() => {
-    fetch(`https://api.tomtom.com/search/2/poiSearch/.json?lat=37.337&lon=-121.89&categorySet=7320,7374,7332,9902,9379,9927,7342,7318,9362&view=Unified&relatedPois=all&key=${process.env.EXPO_PUBLIC_TOMTOM_API_KEY}&limit=15&openingHours=nextSevenDays`)
+    fetch(`https://api.tomtom.com/search/2/poiSearch/.json?lat=${trip.Latitude}&lon=${trip.Longitude}&categorySet=7320,7374,7332,9902,9379,9927,7342,7318,9362&view=Unified&relatedPois=all&key=${process.env.EXPO_PUBLIC_TOMTOM_API_KEY}&limit=15&openingHours=nextSevenDays`)
       .then((response) => response.json())
       .then((json) => {
         setActivityResults(json.results);
       });
   }, []);
-
-  interface ActivityRecommendation {
-    poi: {
-      name: string;
-      phone: string;
-      url: string;
-    };
-    address: {
-      freeformAddress: string;
-    };
-  }
 
   const navigateToDocuments = () => {
     router.push({
@@ -57,7 +60,7 @@ export default function TripDetails() {
   };
 
   const openLink = (url: string) => {
-    Linking.openURL(url).catch((err) => console.error("Couldn't load page", err));
+    Linking.openURL("https://" + url).catch((err) => console.error("Failed to open URL:", err));
   };
 
   const openAddress = (address: string) => {
@@ -69,7 +72,25 @@ export default function TripDetails() {
     if (!url) {
       return;
     }
-    Linking.openURL(url).catch((err) => console.error("An error occurred", err));
+    Linking.openURL(url).catch((err: any) => console.error("An error occurred", err));
+  };
+
+  const addPOIToTrip = async (data: any) => {
+    try {
+      await TravelApiCall("/itinerary", "POST", {
+        tripId: trip.id,
+        poi_id: data.poi.id,
+        phone: data.poi.phone ?? null,
+        url: data.poi.url ?? null,
+        address: data.address.freeformAddress ?? null,
+      });
+      // tripCreated();
+      console.log("Activity Added Successfully!");
+      Toast.success("Activity Added Successfully!");
+    } catch (error) {
+      console.log("Failed to add activity. Please try again later.");
+      Toast.error("Failed to add activity. Please try again later.");
+    }
   };
 
   return (
@@ -117,7 +138,12 @@ export default function TripDetails() {
                   {activity.poi.name}
                 </Text>
                 <View>
-                  <TabBarIcon name="add" />
+                  <TabBarIcon
+                    name="add"
+                    onPress={() => {
+                      addPOIToTrip(activity);
+                    }}
+                  />
                 </View>
               </View>
               <View style={styles.recommendationButtons}>
