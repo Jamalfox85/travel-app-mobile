@@ -8,6 +8,7 @@ export async function TravelApiCall(url: string, method: string = "GET", body?: 
       },
       body: body ? JSON.stringify(body) : null,
     });
+    console.log("Response", response);
     const json = await response.json();
     return json;
   } catch (error) {

@@ -1,10 +1,12 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, Linking, Platform, ScrollView } from "react-native";
 import React, { useState, useEffect } from "react";
 import { Trip } from "@/types";
 import { useLocalSearchParams, Link, useRouter } from "expo-router";
 import { Button } from "react-native-paper";
 import { formatDateFrontEnd } from "@/utils";
 import moment from "moment";
+import { TabBarIcon } from "@/components/navigation/TabBarIcon";
+import call from "react-native-phone-call";
 
 export default function TripDetails() {
   const router = useRouter();
@@ -13,15 +15,19 @@ export default function TripDetails() {
 
   const daysLeftCount = moment(trip.Start_date).diff(moment(), "days");
 
-  const [activityResults, setActivityResults] = useState([]);
+  const [activityResults, setActivityResults] = useState([
+    { poi: { name: "", phone: "", url: "" }, address: { freeformAddress: "" } },
+    { poi: { name: "", phone: "", url: "" }, address: { freeformAddress: "" } },
+    { poi: { name: "", phone: "", url: "" }, address: { freeformAddress: "" } },
+  ]);
 
-  // useEffect(() => {
-  //   fetch(`https://api.tomtom.com/search/2/poiSearch/pizza.json?lat=37.337&lon=-121.89&categorySet=7320, 7374, 7332, 9902, 9379, 9927, 7342, 7318, 9362&view=Unified&relatedPois=all&key=${process.env.EXPO_PUBLIC_TOMTOM_API_KEY}&limit=15&openingHours=nextSevenDays`)
-  //     .then((response) => response.json())
-  //     .then((json) => {
-  //       setActivityResults(json.results);
-  //     });
-  // }, []);
+  useEffect(() => {
+    fetch(`https://api.tomtom.com/search/2/poiSearch/.json?lat=37.337&lon=-121.89&categorySet=7320,7374,7332,9902,9379,9927,7342,7318,9362&view=Unified&relatedPois=all&key=${process.env.EXPO_PUBLIC_TOMTOM_API_KEY}&limit=15&openingHours=nextSevenDays`)
+      .then((response) => response.json())
+      .then((json) => {
+        setActivityResults(json.results);
+      });
+  }, []);
 
   interface ActivityRecommendation {
     poi: {
@@ -40,8 +46,34 @@ export default function TripDetails() {
       params: { trip: JSON.stringify(trip) },
     });
   };
+
+  const triggerCall = (phoneNumber: string) => {
+    const args = {
+      number: phoneNumber,
+      prompt: true,
+    };
+
+    call(args).catch(console.error);
+  };
+
+  const openLink = (url: string) => {
+    Linking.openURL(url).catch((err) => console.error("Couldn't load page", err));
+  };
+
+  const openAddress = (address: string) => {
+    const url = Platform.select({
+      ios: `maps:0,0?q=${encodeURIComponent(address)}`,
+      android: `geo:0,0?q=${encodeURIComponent(address)}`,
+    });
+
+    if (!url) {
+      return;
+    }
+    Linking.openURL(url).catch((err) => console.error("An error occurred", err));
+  };
+
   return (
-    <View>
+    <ScrollView>
       <View style={styles.topBar}>
         <Text style={styles.tripTitle}>{trip.Title ? trip.Title : trip.Location}</Text>
         <Text>{trip.Title !== trip.Location && trip.Location}</Text>
@@ -77,20 +109,48 @@ export default function TripDetails() {
       </View>
       <View style={styles.recommendationSection}>
         <Text style={styles.sectionHeader}>Activities</Text>
-        <View style={styles.recommendationBlocks}>
-          {activityResults.map((activity: ActivityRecommendation) => (
-            <View style={styles.recommendationBlock}>
-              <View style={styles.sectionBlockHeader}>
-                <Text>{activity.poi.name}</Text>
+        <ScrollView horizontal={true} style={styles.recommendationBlocks}>
+          {activityResults.map((activity: ActivityRecommendation, index: number) => (
+            <View style={styles.recommendationBlock} key={index}>
+              <View style={styles.recommendationBlockHeader}>
+                <Text style={styles.recommendationBlockHeaderText} numberOfLines={2}>
+                  {activity.poi.name}
+                </Text>
+                <View>
+                  <TabBarIcon name="add" />
+                </View>
               </View>
-              <Text>{activity.poi.phone}</Text>
-              <Text>{activity.poi.url}</Text>
-              <Text>{activity.address.freeformAddress}</Text>
+              <View style={styles.recommendationButtons}>
+                {activity.poi.phone && (
+                  <TabBarIcon
+                    name="phone"
+                    onPress={() => {
+                      triggerCall(activity.poi.phone);
+                    }}
+                  />
+                )}
+                {activity.poi.url && (
+                  <TabBarIcon
+                    name="link"
+                    onPress={() => {
+                      openLink(activity.poi.url);
+                    }}
+                  />
+                )}
+                {activity.address.freeformAddress && (
+                  <TabBarIcon
+                    name="location-on"
+                    onPress={() => {
+                      openAddress(activity.address.freeformAddress);
+                    }}
+                  />
+                )}
+              </View>
             </View>
           ))}
-        </View>
+        </ScrollView>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -135,20 +195,34 @@ const styles = StyleSheet.create({
   sectionHeader: {
     fontSize: 24,
     fontWeight: "bold",
+    marginBottom: 10,
   },
   recommendationBlocks: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "center",
   },
   recommendationBlock: {
-    width: "45%",
+    width: 200,
+    height: 125,
     margin: 5,
-    padding: 10,
+    padding: 20,
     backgroundColor: "lightgrey",
+    borderRadius: 5,
+    justifyContent: "space-between",
   },
-  sectionBlockHeader: {
+  recommendationBlockHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
+  },
+  recommendationBlockHeaderText: {
+    fontWeight: "bold",
+    fontSize: 14,
+    marginRight: 20,
+    width: "75%",
+  },
+  recommendationButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 });

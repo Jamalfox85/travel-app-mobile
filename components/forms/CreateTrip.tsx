@@ -13,10 +13,15 @@ interface SearchResult {
   description: string;
   place_id: string;
 }
+interface Coordinates {
+  latitude: number;
+  longitude: number;
+}
 
 export default function CreateTrip({ tripCreated }: { tripCreated: () => void }) {
   const [location, setLocation] = useState<SearchResult | null>();
   const [locationSearchResults, setLocationSearchResults] = useState<any>([]);
+  const [selectedLocationCoordinates, setSelectedLocationCoordinates] = useState<Coordinates>({ latitude: 0, longitude: 0 });
   const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
   const [photoOptions, setPhotoOptions] = useState<any>([]);
   const [startDate, setStartDate] = useState(new Date());
@@ -43,6 +48,8 @@ export default function CreateTrip({ tripCreated }: { tripCreated: () => void })
         end_date: moment(endDate).format("YYYY-MM-DD"),
         place_id: location?.place_id,
         photo_uri: selectedPhoto,
+        longitude: selectedLocationCoordinates.longitude,
+        latitude: selectedLocationCoordinates.latitude,
       });
       tripCreated();
       Toast.success("Trip Created Successfully!");
@@ -64,17 +71,21 @@ export default function CreateTrip({ tripCreated }: { tripCreated: () => void })
     []
   );
 
-  const fetchPhotoOptions = async (placeId: string) => {
+  const fetchDetailsAndPhotos = async (placeId: string) => {
     const placeDetailsResponse = await fetch(`https://maps.googleapis.com/maps/api/place/details/json?placeid=${placeId}&key=${process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY}`);
     const placeDetailsData = await placeDetailsResponse.json();
-    const photoReferenceIds = await placeDetailsData.result?.photos.map((photo: any) => photo.photo_reference);
 
+    const coordinates = placeDetailsData.result?.geometry.location;
+    setSelectedLocationCoordinates({ latitude: coordinates.lat, longitude: coordinates.lng });
+
+    const photoReferenceIds = await placeDetailsData.result?.photos.map((photo: any) => photo.photo_reference);
     const photoOptions = await Promise.all(
       photoReferenceIds.map(async (photoReference: string) => {
         const placePhotosResponse = await fetch(`https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photoReference}&key=${process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY}`);
         return placePhotosResponse.url;
       })
     );
+
     setPhotoOptions(photoOptions);
   };
 
@@ -128,7 +139,7 @@ export default function CreateTrip({ tripCreated }: { tripCreated: () => void })
                   title={result.description}
                   onPress={() => {
                     setLocation(result);
-                    fetchPhotoOptions(result.place_id);
+                    fetchDetailsAndPhotos(result.place_id);
                   }}
                 />
               </TouchableRipple>
@@ -171,13 +182,9 @@ export default function CreateTrip({ tripCreated }: { tripCreated: () => void })
       <View style={styles.inputGroup}>
         <Text>Trip Dates</Text>
         <View style={styles.datesContainer}>
-          <Button>
-            <DateTimePicker value={startDate} mode="date" display="default" onChange={onStartDateChange} />
-          </Button>
+          <DateTimePicker value={startDate} mode="date" display="default" onChange={onStartDateChange} />
           <Text> - </Text>
-          <Button>
-            <DateTimePicker value={endDate} mode="date" display="default" onChange={onEndDateChange} />
-          </Button>
+          <DateTimePicker value={endDate} mode="date" display="default" onChange={onEndDateChange} />
         </View>
       </View>
 
