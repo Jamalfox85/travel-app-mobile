@@ -1,11 +1,20 @@
-import { Image, ImageBackground, StyleSheet, View, Text } from "react-native";
+import { Image, ImageBackground, StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { Trip } from "@/types";
 import { formatDateFrontEnd } from "@/utils";
+import { useRouter } from "expo-router";
 
 export default function TripRecord({ trip }: { trip: Trip }) {
+  const router = useRouter();
+
+  const navigateToDetails = () => {
+    router.push({
+      pathname: "/TripDetails",
+      params: { trip: JSON.stringify(trip) },
+    });
+  };
   return (
-    <View>
+    <TouchableOpacity onPress={navigateToDetails}>
       {trip.Photo_uri && <ImageBackground source={{ uri: trip.Photo_uri }} style={styles.bgImg} />}
 
       <View style={[styles.tripWrapper, trip.Photo_uri ? styles.tripWrapperWithBGImage : null]}>
@@ -17,7 +26,7 @@ export default function TripRecord({ trip }: { trip: Trip }) {
           {formatDateFrontEnd(trip.Start_date)} • {formatDateFrontEnd(trip.End_date)}
         </ThemedText>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 

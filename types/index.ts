@@ -1,4 +1,5 @@
 export interface Trip {
+  Id: never;
   Title: string;
   Location: string;
   UserId: string;

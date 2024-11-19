@@ -1,8 +1,6 @@
-import { TRAVEL_API_BASE_URL } from "@env";
-
 export async function TravelApiCall(url: string, method: string = "GET", body?: any, headers: any = {}) {
   try {
-    const response = await fetch(`${TRAVEL_API_BASE_URL}${url}`, {
+    const response = await fetch(`${process.env.EXPO_PUBLIC_TRAVEL_API_BASE_URL}${url}`, {
       method,
       headers: {
         "Content-Type": "application/json",

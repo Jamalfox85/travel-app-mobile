@@ -4,7 +4,6 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { TextInput, Button, List, TouchableRipple, Text, Icon, MD3Colors, RadioButton } from "react-native-paper";
 import { useForm, Controller } from "react-hook-form";
 import debounce from "lodash.debounce";
-import { GOOGLE_PLACES_API_KEY } from "@env";
 import { start } from "repl";
 import moment from "moment";
 import { Toast } from "toastify-react-native";
@@ -55,7 +54,7 @@ export default function CreateTrip({ tripCreated }: { tripCreated: () => void })
   const fetchSearchLocations = useCallback(
     debounce(async (query: string) => {
       if (query.length >= 3) {
-        const response = await fetch(`https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${query}&types=(cities)&key=${GOOGLE_PLACES_API_KEY}`);
+        const response = await fetch(`https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${query}&types=(cities)&key=${process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY}`);
         const data = await response.json();
         setLocationSearchResults(data.predictions);
       } else {
@@ -66,13 +65,13 @@ export default function CreateTrip({ tripCreated }: { tripCreated: () => void })
   );
 
   const fetchPhotoOptions = async (placeId: string) => {
-    const placeDetailsResponse = await fetch(`https://maps.googleapis.com/maps/api/place/details/json?placeid=${placeId}&key=${GOOGLE_PLACES_API_KEY}`);
+    const placeDetailsResponse = await fetch(`https://maps.googleapis.com/maps/api/place/details/json?placeid=${placeId}&key=${process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY}`);
     const placeDetailsData = await placeDetailsResponse.json();
     const photoReferenceIds = await placeDetailsData.result?.photos.map((photo: any) => photo.photo_reference);
 
     const photoOptions = await Promise.all(
       photoReferenceIds.map(async (photoReference: string) => {
-        const placePhotosResponse = await fetch(`https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photoReference}&key=${GOOGLE_PLACES_API_KEY}`);
+        const placePhotosResponse = await fetch(`https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photoReference}&key=${process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY}`);
         return placePhotosResponse.url;
       })
     );

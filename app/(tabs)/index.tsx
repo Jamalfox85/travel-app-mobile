@@ -18,6 +18,7 @@ export default function HomeScreen() {
   const [createTripModalVisible, setCreateTripModalVisible] = useState(false);
 
   useEffect(() => {
+    console.log("travel base url: ", process.env.EXPO_PUBLIC_TRAVEL_API_BASE_URL);
     const fetchData = async () => {
       try {
         const data = await TravelApiCall(`/trips/${userId}`);
@@ -35,6 +36,7 @@ export default function HomeScreen() {
       <View style={styles.titleContainer}>
         <ToastManager />
         <ThemedText type="title">My Trips</ThemedText>
+        {process.env.TRAVEL_API_BASE_URL}
         <Button mode="contained" onPress={() => setCreateTripModalVisible(true)}>
           Add Trip
         </Button>
