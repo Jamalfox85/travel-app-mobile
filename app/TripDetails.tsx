@@ -78,13 +78,13 @@ export default function TripDetails() {
   const addPOIToTrip = async (data: any) => {
     try {
       await TravelApiCall("/itinerary", "POST", {
-        tripId: trip.id,
-        poi_id: data.poi.id,
+        tripId: trip.ID,
+        title: data.poi.name,
+        poi_id: data.id,
         phone: data.poi.phone ?? null,
         url: data.poi.url ?? null,
         address: data.address.freeformAddress ?? null,
       });
-      // tripCreated();
       console.log("Activity Added Successfully!");
       Toast.success("Activity Added Successfully!");
     } catch (error) {
