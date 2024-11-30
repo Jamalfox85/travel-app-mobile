@@ -10,6 +10,7 @@ import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import call from "react-native-phone-call";
 import { TravelApiCall } from "@/services/ApiService";
 import { Toast } from "toastify-react-native";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ActivityRecommendation {
   poi: {
@@ -29,19 +30,27 @@ export default function TripDetails() {
 
   const daysLeftCount = moment(trip.Start_date).diff(moment(), "days");
 
-  const [activityResults, setActivityResults] = useState([
-    { poi: { name: "", phone: "", url: "" }, address: { freeformAddress: "" } },
-    { poi: { name: "", phone: "", url: "" }, address: { freeformAddress: "" } },
-    { poi: { name: "", phone: "", url: "" }, address: { freeformAddress: "" } },
-  ]);
+  const [activityResults, setActivityResults] = useState([]);
+  const [restaurantResults, setRestaurantResults] = useState([]);
 
-  useEffect(() => {
-    fetch(`https://api.tomtom.com/search/2/poiSearch/.json?lat=${trip.Latitude}&lon=${trip.Longitude}&categorySet=7320,7374,7332,9902,9379,9927,7342,7318,9362&view=Unified&relatedPois=all&key=${process.env.EXPO_PUBLIC_TOMTOM_API_KEY}&limit=15&openingHours=nextSevenDays`)
-      .then((response) => response.json())
-      .then((json) => {
-        setActivityResults(json.results);
-      });
-  }, []);
+  const [tab, setTab] = useState("details");
+
+  // useEffect(() => {
+  //   fetch(`https://api.tomtom.com/search/2/poiSearch/.json?lat=${trip.Latitude}&lon=${trip.Longitude}&categorySet=7320,7374,7332,9902,9379,9927,7342,7318,9362&view=Unified&relatedPois=all&key=${process.env.EXPO_PUBLIC_TOMTOM_API_KEY}&limit=15&openingHours=nextSevenDays`)
+  //     .then((response) => response.json())
+  //     .then((json) => {
+  //       setActivityResults(json.results);
+  //     });
+
+  //   const radius = 15000; // meters
+  //   fetch(`https://maps.googleapis.com/maps/api/place/nearbysearch/json?key=${process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY}&type=restaurant&location=${trip.Latitude},${trip.Longitude}&radius=${radius}`)
+  //     .then((response) => response.json())
+  //     .then((json) => {
+  //       setRestaurantResults(json.results);
+  //     });
+
+  //   console.log("restaurantResults", restaurantResults);
+  // }, []);
 
   const navigateToDocuments = () => {
     router.push({
@@ -94,89 +103,113 @@ export default function TripDetails() {
   };
 
   return (
-    <ScrollView>
-      <View style={styles.topBar}>
-        <Text style={styles.tripTitle}>{trip.Title ? trip.Title : trip.Location}</Text>
-        <Text>{trip.Title !== trip.Location && trip.Location}</Text>
-        <Text>
-          {formatDateFrontEnd(trip.Start_date)} - {formatDateFrontEnd(trip.End_date)}
-        </Text>
-      </View>
-      <View style={styles.daysLeftCountGroup}>
-        <Text style={styles.daysLeftCount}>{daysLeftCount}</Text>
-        <Text>Days Away</Text>
-      </View>
-      <View style={styles.tripButtonGroup}>
-        <View style={styles.tripButton}>
-          <Button mode="contained" onPress={() => navigateToDocuments}>
-            Lodging
-          </Button>
-        </View>
-        <View style={styles.tripButton}>
-          <Button mode="contained" onPress={() => navigateToDocuments}>
-            Documents
-          </Button>
-        </View>
-        <View style={styles.tripButton}>
-          <Button mode="contained" onPress={() => navigateToDocuments}>
-            Cultural Norms
-          </Button>
-        </View>
-        <View style={styles.tripButton}>
-          <Button mode="contained" onPress={() => navigateToDocuments}>
-            Phrase Book
-          </Button>
-        </View>
-      </View>
-      <View style={styles.recommendationSection}>
-        <Text style={styles.sectionHeader}>Activities</Text>
-        <ScrollView horizontal={true} style={styles.recommendationBlocks}>
-          {activityResults.map((activity: ActivityRecommendation, index: number) => (
-            <View style={styles.recommendationBlock} key={index}>
-              <View style={styles.recommendationBlockHeader}>
-                <Text style={styles.recommendationBlockHeaderText} numberOfLines={2}>
-                  {activity.poi.name}
-                </Text>
-                <View>
-                  <TabBarIcon
-                    name="add"
-                    onPress={() => {
-                      addPOIToTrip(activity);
-                    }}
-                  />
-                </View>
-              </View>
-              <View style={styles.recommendationButtons}>
-                {activity.poi.phone && (
-                  <TabBarIcon
-                    name="phone"
-                    onPress={() => {
-                      triggerCall(activity.poi.phone);
-                    }}
-                  />
-                )}
-                {activity.poi.url && (
-                  <TabBarIcon
-                    name="link"
-                    onPress={() => {
-                      openLink(activity.poi.url);
-                    }}
-                  />
-                )}
-                {activity.address.freeformAddress && (
-                  <TabBarIcon
-                    name="location-on"
-                    onPress={() => {
-                      openAddress(activity.address.freeformAddress);
-                    }}
-                  />
-                )}
-              </View>
-            </View>
-          ))}
-        </ScrollView>
-      </View>
-    </ScrollView>
+    <View className="flex-1 justify-center p-6">
+      <Tabs value={tab} onValueChange={setTab} className="w-full max-w-[400px] mx-auto flex-col gap-1.5">
+        <TabsList className="flex-row w-full">
+          <TabsTrigger value="details" className="flex-1">
+            <Text>Details</Text>
+          </TabsTrigger>
+          <TabsTrigger value="itinerary" className="flex-1">
+            <Text>Itinerary</Text>
+          </TabsTrigger>
+          <TabsTrigger value="explore" className="flex-1">
+            <Text>Explore</Text>
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="details">
+          <Text>Test1</Text>
+        </TabsContent>
+        <TabsContent value="itinerary">
+          <Text>Test2</Text>
+        </TabsContent>
+        <TabsContent value="explore">
+          <Text>Test3</Text>
+        </TabsContent>
+      </Tabs>
+    </View>
+    // <ScrollView>
+    //   <View style={styles.topBar}>
+    //     <Text style={styles.tripTitle}>{trip.Title ? trip.Title : trip.Location}</Text>
+    //     <Text>{trip.Title !== trip.Location && trip.Location}</Text>
+    //     <Text>
+    //       {formatDateFrontEnd(trip.Start_date)} - {formatDateFrontEnd(trip.End_date)}
+    //     </Text>
+    //   </View>
+    //   <View style={styles.daysLeftCountGroup}>
+    //     <Text style={styles.daysLeftCount}>{daysLeftCount}</Text>
+    //     <Text>Days Away</Text>
+    //   </View>
+    //   <View style={styles.tripButtonGroup}>
+    //     <View style={styles.tripButton}>
+    //       <Button mode="contained" onPress={() => navigateToDocuments}>
+    //         Lodging
+    //       </Button>
+    //     </View>
+    //     <View style={styles.tripButton}>
+    //       <Button mode="contained" onPress={() => navigateToDocuments}>
+    //         Documents
+    //       </Button>
+    //     </View>
+    //     <View style={styles.tripButton}>
+    //       <Button mode="contained" onPress={() => navigateToDocuments}>
+    //         Cultural Norms
+    //       </Button>
+    //     </View>
+    //     <View style={styles.tripButton}>
+    //       <Button mode="contained" onPress={() => navigateToDocuments}>
+    //         Phrase Book
+    //       </Button>
+    //     </View>
+    //   </View>
+    //   <View style={styles.recommendationSection}>
+    //     <Text style={styles.sectionHeader}>Activities</Text>
+    //     <ScrollView horizontal={true} style={styles.recommendationBlocks}>
+    //       {activityResults.map((activity: ActivityRecommendation, index: number) => (
+    //         <View style={styles.recommendationBlock} key={index}>
+    //           <View style={styles.recommendationBlockHeader}>
+    //             <Text style={styles.recommendationBlockHeaderText} numberOfLines={2}>
+    //               {activity.poi.name}
+    //             </Text>
+    //             <View>
+    //               <TabBarIcon
+    //                 name="add"
+    //                 onPress={() => {
+    //                   addPOIToTrip(activity);
+    //                 }}
+    //               />
+    //             </View>
+    //           </View>
+    //           <View style={styles.recommendationButtons}>
+    //             {activity.poi.phone && (
+    //               <TabBarIcon
+    //                 name="phone"
+    //                 onPress={() => {
+    //                   triggerCall(activity.poi.phone);
+    //                 }}
+    //               />
+    //             )}
+    //             {activity.poi.url && (
+    //               <TabBarIcon
+    //                 name="link"
+    //                 onPress={() => {
+    //                   openLink(activity.poi.url);
+    //                 }}
+    //               />
+    //             )}
+    //             {activity.address.freeformAddress && (
+    //               <TabBarIcon
+    //                 name="location-on"
+    //                 onPress={() => {
+    //                   openAddress(activity.address.freeformAddress);
+    //                 }}
+    //               />
+    //             )}
+    //           </View>
+    //         </View>
+    //       ))}
+    //     </ScrollView>
+    //   </View>
+    // </ScrollView>
   );
 }
 
