@@ -1,4 +1,11 @@
-import { Image, ImageBackground, StyleSheet, View, Text, TouchableOpacity } from "react-native";
+import {
+  Image,
+  ImageBackground,
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+} from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { Trip } from "@/types";
 import { formatDateFrontEnd } from "@/utils";
@@ -15,15 +22,33 @@ export default function TripRecord({ trip }: { trip: Trip }) {
   };
   return (
     <TouchableOpacity onPress={navigateToDetails}>
-      {trip.Photo_uri && <ImageBackground source={{ uri: trip.Photo_uri }} style={styles.bgImg} />}
+      {trip.Photo_uri && (
+        <ImageBackground
+          source={{ uri: trip.Photo_uri }}
+          style={styles.bgImg}
+        />
+      )}
+      <View
+        style={[
+          styles.tripWrapper,
+          trip.Photo_uri ? styles.tripWrapperWithBGImage : null,
+        ]}
+      >
+        <ThemedText
+          style={[styles.tripTitle, trip.Photo_uri ? { color: "white" } : null]}
+        >
+          {trip.Title ? trip.Title : trip.Location}
+        </ThemedText>
 
-      <View style={[styles.tripWrapper, trip.Photo_uri ? styles.tripWrapperWithBGImage : null]}>
-        <ThemedText style={[styles.tripTitle, trip.Photo_uri ? { color: "white" } : null]}>{trip.Title ? trip.Title : trip.Location}</ThemedText>
-
-        {trip.Title && trip.Title !== trip.Location && <ThemedText style={trip.Photo_uri ? { color: "white" } : null}>{trip.Location}</ThemedText>}
+        {trip.Title && trip.Title !== trip.Location && (
+          <ThemedText style={trip.Photo_uri ? { color: "white" } : null}>
+            {trip.Location}
+          </ThemedText>
+        )}
 
         <ThemedText style={trip.Photo_uri ? { color: "white" } : null}>
-          {formatDateFrontEnd(trip.Start_date)} • {formatDateFrontEnd(trip.End_date)}
+          {formatDateFrontEnd(trip.Start_date)} •{" "}
+          {formatDateFrontEnd(trip.End_date)}
         </ThemedText>
       </View>
     </TouchableOpacity>
