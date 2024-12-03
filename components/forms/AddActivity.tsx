@@ -186,7 +186,8 @@ export default function AddActivity({
             {activitySearchResults.map((result: any, index: number) => (
               <TouchableRipple key={index} rippleColor="rgba(0, 0, 0, .32)">
                 <List.Item
-                  title={result.description}
+                  title={result.structured_formatting.main_text}
+                  description={result.structured_formatting.secondary_text}
                   onPress={() => {
                     setActivity(result);
                   }}
