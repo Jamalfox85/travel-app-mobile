@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trip, Activity } from "@/types";
+import { Trip, Activity, Accommodation } from "@/types";
 import moment from "moment";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
@@ -18,11 +18,13 @@ import {
   CollapsibleContent,
 } from "@/components/ui/collapsible";
 import call from "react-native-phone-call";
+import { Button } from "react-native-paper";
 
 interface TripTab {
   name: string;
   date?: string;
   activities?: any[];
+  accommodation?: Accommodation;
 }
 
 const triggerCall = (phoneNumber: string) => {
@@ -72,13 +74,25 @@ export default function Itinerary({ trip }: { trip: Trip }) {
           );
         })
       : [];
+    let accommodation: Accommodation | undefined =
+      trip.Accommodations &&
+      trip.Accommodations.find((accommodation) => {
+        return (
+          moment(accommodation.StartDate).isSameOrBefore(momentDate) &&
+          moment(accommodation.EndDate).isSameOrAfter(momentDate)
+        );
+      });
+
+    console.log("accommodation", accommodation);
 
     tripDates.push({
       name,
       date,
       activities,
+      accommodation,
     });
   }
+
   // Add Unassigned Tab
   let unscheduledActivities =
     trip.Activities &&
@@ -91,7 +105,6 @@ export default function Itinerary({ trip }: { trip: Trip }) {
       );
     });
 
-  console.log("unscheduledActivities", unscheduledActivities);
   tripDates.unshift({
     name: "Unscheduled",
     activities: unscheduledActivities,
@@ -129,13 +142,41 @@ export default function Itinerary({ trip }: { trip: Trip }) {
             ))}
           </ScrollView>
         </TabsList>
+
         {tripDates.map((date, index) => (
           <TabsContent key={index} value={date.name}>
             {date.date && (
-              <View className="bg-purple-100 p-4 border-y-2 border-purple-700 mb-8">
-                <Text className="text-center font-bold text-xl">
-                  {date.date}
-                </Text>
+              <View>
+                <View className="bg-purple-100 p-4 border-y-2 border-purple-700 mb-2">
+                  <Text className="text-center font-bold text-xl">
+                    {date.date}
+                  </Text>
+                </View>
+                <View className="bg-orange-200 p-2 rounded-md mb-8">
+                  {date.accommodation ? (
+                    <View className="flex-1 flex-row flex-wrap items-center">
+                      <Ionicons size={24} name="bed" className="mr-2" />
+                      <Text>{date.accommodation.Title}</Text>
+                      <Ionicons
+                        size={24}
+                        name="information-circle-outline"
+                        className="ml-auto"
+                      />
+                    </View>
+                  ) : (
+                    <View className="flex-1 flex-row flex-wrap items-center">
+                      <Ionicons size={24} name="alert-outline" />
+                      <Text className="text-red-500 font-bold">
+                        You haven't added a stay for this day yet!
+                      </Text>
+                      <Ionicons
+                        size={24}
+                        name="add-circle-outline"
+                        className="ml-auto"
+                      />
+                    </View>
+                  )}
+                </View>
               </View>
             )}
             {date.activities &&
