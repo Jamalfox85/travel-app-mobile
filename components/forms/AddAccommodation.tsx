@@ -23,29 +23,24 @@ import { start } from "repl";
 import moment from "moment";
 import { Toast } from "toastify-react-native";
 import { TravelApiCall } from "@/services/ApiService";
+import { Trip } from "@/types";
 
-interface SearchResult {
-  description: string;
-  place_id: string;
-}
 interface Coordinates {
   latitude: number;
   longitude: number;
 }
 
 export default function CreateTrip({
-  tripCreated,
+  activityAdded,
+  trip,
 }: {
-  tripCreated: () => void;
+  activityAdded: () => void;
+  trip: Trip;
 }) {
-  const [location, setLocation] = useState<SearchResult | null>();
+  const [location, setLocation] = useState<any>();
   const [locationSearchResults, setLocationSearchResults] = useState<any>([]);
-  const [selectedLocationCoordinates, setSelectedLocationCoordinates] =
-    useState<Coordinates>({ latitude: 0, longitude: 0 });
-  const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
-  const [photoOptions, setPhotoOptions] = useState<any>([]);
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date());
+  const [startDate, setStartDate] = useState(moment(trip.Start_date).toDate());
+  const [endDate, setEndDate] = useState(moment(trip.End_date).toDate());
 
   const {
     control,
@@ -58,20 +53,27 @@ export default function CreateTrip({
     },
   });
 
+  const locationDetails = async (place_id: string) => {
+    const response = await fetch(
+      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&key=${process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY}`
+    );
+    const data = await response.json();
+    return data.result;
+  };
+
   const onFormSubmit = async (data: any) => {
+    const details = await locationDetails(location?.place_id);
     try {
-      await TravelApiCall("/trips", "POST", {
-        title: data.title,
-        location: data.location,
-        userId: 1,
-        start_date: moment(startDate).format("YYYY-MM-DD"),
-        end_date: moment(endDate).format("YYYY-MM-DD"),
-        place_id: location?.place_id,
-        photo_uri: selectedPhoto,
-        longitude: selectedLocationCoordinates.longitude,
-        latitude: selectedLocationCoordinates.latitude,
+      await TravelApiCall("/accommodations", "POST", {
+        tripId: trip.ID,
+        title: location.structured_formatting.main_text,
+        address: details.formatted_address,
+        url: details?.website,
+        phone: details?.formatted_phone_number,
+        startDate: moment(startDate).format("YYYY-MM-DD"),
+        endDate: moment(endDate).format("YYYY-MM-DD"),
       });
-      tripCreated();
+      activityAdded();
       Toast.success("Trip Created Successfully!");
     } catch (error) {
       Toast.error("Failed to create trip. Please try again later.");
@@ -82,43 +84,16 @@ export default function CreateTrip({
     debounce(async (query: string) => {
       if (query.length >= 3) {
         const response = await fetch(
-          `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${query}&types=(cities)&key=${process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY}`
+          `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${query}&types=lodging&key=${process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY}&location=${trip.Latitude},${trip.Longitude}&radius=50000`
         );
         const data = await response.json();
         setLocationSearchResults(data.predictions);
       } else {
         setLocationSearchResults([]);
       }
-    }, 500),
+    }, 1000),
     []
   );
-
-  const fetchDetailsAndPhotos = async (placeId: string) => {
-    const placeDetailsResponse = await fetch(
-      `https://maps.googleapis.com/maps/api/place/details/json?placeid=${placeId}&key=${process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY}`
-    );
-    const placeDetailsData = await placeDetailsResponse.json();
-
-    const coordinates = placeDetailsData.result?.geometry.location;
-    setSelectedLocationCoordinates({
-      latitude: coordinates.lat,
-      longitude: coordinates.lng,
-    });
-
-    const photoReferenceIds = await placeDetailsData.result?.photos.map(
-      (photo: any) => photo.photo_reference
-    );
-    const photoOptions = await Promise.all(
-      photoReferenceIds.map(async (photoReference: string) => {
-        const placePhotosResponse = await fetch(
-          `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photoReference}&key=${process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY}`
-        );
-        return placePhotosResponse.url;
-      })
-    );
-
-    setPhotoOptions(photoOptions);
-  };
 
   const onStartDateChange = (event: any, selectedDate: any) => {
     selectedDate > endDate && setEndDate(selectedDate);
@@ -155,7 +130,9 @@ export default function CreateTrip({
           />
         ) : (
           <View style={styles.selectedLocation}>
-            <Text variant="titleLarge">{location.description}</Text>
+            <Text variant="titleLarge">
+              {location.structured_formatting.main_text}
+            </Text>
             <Button onPress={() => setLocation(null)}>
               <Icon source="close" color={MD3Colors.primary50} size={30} />
             </Button>
@@ -170,7 +147,6 @@ export default function CreateTrip({
                   title={result.description}
                   onPress={() => {
                     setLocation(result);
-                    fetchDetailsAndPhotos(result.place_id);
                   }}
                 />
               </TouchableRipple>
@@ -181,58 +157,6 @@ export default function CreateTrip({
       </View>
 
       <View style={styles.inputGroup}>
-        <Text>Trip Title</Text>
-        <Controller
-          control={control}
-          rules={{
-            maxLength: 100,
-          }}
-          render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              onBlur={onBlur}
-              onChangeText={onChange}
-              value={value}
-              label={"Trip Title (Optional)"}
-              mode={"outlined"}
-            />
-          )}
-          name="title"
-        />
-      </View>
-
-      {location && photoOptions.length > 0 && (
-        <View style={styles.inputGroup}>
-          <Text>Photo</Text>
-          <View style={styles.imagesContainer}>
-            <RadioButton.Group
-              onValueChange={(image: string) => setSelectedPhoto(image)}
-              value={selectedPhoto}
-            >
-              <View style={styles.imagesContainer}>
-                {photoOptions
-                  .slice(0, 3)
-                  .map((photo: string, index: number) => (
-                    <TouchableOpacity
-                      key={index}
-                      onPress={() => setSelectedPhoto(photo)}
-                    >
-                      <Image
-                        source={{ uri: photo }}
-                        style={[
-                          styles.imageOption,
-                          photo == selectedPhoto && styles.activeImageOption,
-                        ]}
-                      />
-                      <RadioButton value={photo} color="transparent" />
-                    </TouchableOpacity>
-                  ))}
-              </View>
-            </RadioButton.Group>
-          </View>
-        </View>
-      )}
-
-      <View style={styles.inputGroup}>
         <Text>Trip Dates</Text>
         <View style={styles.datesContainer}>
           <DateTimePicker
@@ -240,6 +164,8 @@ export default function CreateTrip({
             mode="date"
             display="default"
             onChange={onStartDateChange}
+            minimumDate={moment(trip.Start_date).toDate()}
+            maximumDate={moment(trip.End_date).toDate()}
           />
           <Text> - </Text>
           <DateTimePicker
@@ -247,6 +173,8 @@ export default function CreateTrip({
             mode="date"
             display="default"
             onChange={onEndDateChange}
+            minimumDate={moment(trip.Start_date).toDate()}
+            maximumDate={moment(trip.End_date).toDate()}
           />
         </View>
       </View>

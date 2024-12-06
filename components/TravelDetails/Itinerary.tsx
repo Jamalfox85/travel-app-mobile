@@ -19,12 +19,13 @@ import {
 } from "@/components/ui/collapsible";
 import call from "react-native-phone-call";
 import { Button } from "react-native-paper";
+import AddAccommodationDrawer from "@/components/drawers/AddAccommodationDrawer";
 
 interface TripTab {
   name: string;
   date?: string;
   activities?: any[];
-  accommodation?: Accommodation;
+  accommodations?: Accommodation[];
 }
 
 const triggerCall = (phoneNumber: string) => {
@@ -57,6 +58,8 @@ const openAddress = (address: string) => {
 };
 
 export default function Itinerary({ trip }: { trip: Trip }) {
+  const [addAccommodationDrawer, setAddAccommodationDrawer] = useState(false);
+
   const start = moment(trip.Start_date);
   const end = moment(trip.End_date);
   const numTripDays = end.diff(start, "days") + 1;
@@ -74,22 +77,21 @@ export default function Itinerary({ trip }: { trip: Trip }) {
           );
         })
       : [];
-    let accommodation: Accommodation | undefined =
-      trip.Accommodations &&
-      trip.Accommodations.find((accommodation) => {
-        return (
-          moment(accommodation.StartDate).isSameOrBefore(momentDate) &&
-          moment(accommodation.EndDate).isSameOrAfter(momentDate)
-        );
-      });
-
-    console.log("accommodation", accommodation);
+    let accommodations: Accommodation[] =
+      (trip.Accommodations &&
+        trip.Accommodations.filter((accommodation) => {
+          return (
+            moment(accommodation.StartDate).isSameOrBefore(momentDate) &&
+            moment(accommodation.EndDate).isSameOrAfter(momentDate)
+          );
+        })) ||
+      [];
 
     tripDates.push({
       name,
       date,
       activities,
-      accommodation,
+      accommodations,
     });
   }
 
@@ -97,7 +99,6 @@ export default function Itinerary({ trip }: { trip: Trip }) {
   let unscheduledActivities =
     trip.Activities &&
     trip.Activities.filter((activity) => {
-      console.log(activity.Date);
       return (
         activity.Date === "0001-01-01" ||
         activity.Date === null ||
@@ -152,17 +153,22 @@ export default function Itinerary({ trip }: { trip: Trip }) {
                     {date.date}
                   </Text>
                 </View>
-                <View className="bg-orange-200 p-2 rounded-md mb-8">
-                  {date.accommodation ? (
-                    <View className="flex-1 flex-row flex-wrap items-center">
-                      <Ionicons size={24} name="bed" className="mr-2" />
-                      <Text>{date.accommodation.Title}</Text>
-                      <Ionicons
-                        size={24}
-                        name="information-circle-outline"
-                        className="ml-auto"
-                      />
-                    </View>
+                <View className=" mb-8">
+                  {date.accommodations && date.accommodations.length > 0 ? (
+                    date.accommodations.map((accommodation, index) => (
+                      <View
+                        className="flex-1 flex-row flex-wrap items-center mb-2 bg-orange-200 p-2 rounded-md"
+                        key={index}
+                      >
+                        <Ionicons size={24} name="bed" className="mr-2" />
+                        <Text>{accommodation.Title}</Text>
+                        <Ionicons
+                          size={24}
+                          name="information-circle-outline"
+                          className="ml-auto"
+                        />
+                      </View>
+                    ))
                   ) : (
                     <View className="flex-1 flex-row flex-wrap items-center">
                       <Ionicons size={24} name="alert-outline" />
@@ -173,6 +179,7 @@ export default function Itinerary({ trip }: { trip: Trip }) {
                         size={24}
                         name="add-circle-outline"
                         className="ml-auto"
+                        onPress={() => setAddAccommodationDrawer(true)}
                       />
                     </View>
                   )}
@@ -266,6 +273,12 @@ export default function Itinerary({ trip }: { trip: Trip }) {
           </TabsContent>
         ))}
       </Tabs>
+
+      <AddAccommodationDrawer
+        isOpen={addAccommodationDrawer}
+        updateVisibility={(state) => setAddAccommodationDrawer(state)}
+        trip={trip}
+      />
     </View>
   );
 }

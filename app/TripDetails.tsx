@@ -29,6 +29,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import AddActivityDrawer from "@/components/drawers/AddActivityDrawer";
 import ToastManager, { Toast } from "toastify-react-native";
+import AddAccommodationDrawer from "@/components/drawers/AddAccommodationDrawer";
 
 interface ActivityRecommendation {
   poi: {
@@ -85,10 +86,8 @@ export default function TripDetails() {
         url: data.poi.url ?? null,
         address: data.address.freeformAddress ?? null,
       });
-      console.log("Activity Added Successfully!");
       Toast.success("Activity Added Successfully!");
     } catch (error) {
-      console.log("Failed to add activity. Please try again later.");
       Toast.error("Failed to add activity. Please try again later.");
     }
   };
@@ -111,6 +110,8 @@ export default function TripDetails() {
   };
 
   const [addActivityModalVisible, setAddActivityModalVisible] = useState(false);
+  const [addAccommodationModalVisibile, setAddAccommodationModalVisible] =
+    useState(false);
 
   return (
     <ScrollView className="flex-1 p-6">
@@ -127,14 +128,26 @@ export default function TripDetails() {
             insets={contentInsets}
             className="w-80 bg-white border-0 mt-[100px]"
           >
-            <Button
-              mode="contained"
-              onPress={() => {
-                setAddActivityModalVisible(true);
-              }}
-            >
-              New Activity
-            </Button>
+            <View className="mb-2">
+              <Button
+                mode="contained"
+                onPress={() => {
+                  setAddActivityModalVisible(true);
+                }}
+              >
+                New Activity
+              </Button>
+            </View>
+            <View>
+              <Button
+                mode="contained"
+                onPress={() => {
+                  setAddAccommodationModalVisible(true);
+                }}
+              >
+                New Accommodation
+              </Button>
+            </View>
           </PopoverContent>
         </Popover>
       </View>
@@ -174,6 +187,11 @@ export default function TripDetails() {
         trip={trip}
         isOpen={addActivityModalVisible}
         updateVisibility={(state) => setAddActivityModalVisible(state)}
+      />
+      <AddAccommodationDrawer
+        trip={trip}
+        isOpen={addAccommodationModalVisibile}
+        updateVisibility={(state) => setAddAccommodationModalVisible(state)}
       />
     </ScrollView>
   );

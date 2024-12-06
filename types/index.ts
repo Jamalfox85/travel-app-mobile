@@ -8,6 +8,8 @@ export interface Trip {
   End_date: string;
   Place_id: string;
   Photo_uri: string;
+  Latitude?: number;
+  Longitude?: number;
   Activities?: Activity[];
   Accommodations?: Accommodation[];
 }
