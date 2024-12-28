@@ -13,6 +13,17 @@ import { PortalHost } from "@rn-primitives/portal";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
 
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
+GoogleSignin.configure({
+  iosClientId: process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY,
+  scopes: ["profile", "email"],
+});
+const GoogleLogin = async () => {
+  await GoogleSignin.hasPlayServices();
+  const userInfo = await GoogleSignin.signIn();
+  return userInfo;
+};
+
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 

@@ -31,6 +31,16 @@
     "plugins": ["expo-router", "expo-font"],
     "experiments": {
       "typedRoutes": true
+    },
+    "expo": {
+      "plugins": [
+        [
+          "@react-native-google-signin/google-signin",
+          {
+            "iosUrlScheme": "com.jamalfox.travelapp"
+          }
+        ]
+      ]
     }
   }
 }
