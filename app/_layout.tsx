@@ -11,6 +11,7 @@ import { useState, useEffect } from "react";
 import "react-native-reanimated";
 import "../global.css";
 import { PortalHost } from "@rn-primitives/portal";
+import { Platform } from "react-native";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
 
@@ -24,13 +25,15 @@ WebBrowser.maybeCompleteAuthSession();
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  // WHEN YOU CONTINUE: RUN 'npx expo run:ios' to continue. Google sign in does not work on expo go, so we need to use x code emulators.
-  // however, project throws error when trying to spin up emulator.
   const [userInfo, setUserInfo] = useState(null);
   const [request, response, promptAsync] = Google.useAuthRequest({
-    iosClientId:
+    clientId:
       "717474575408-6kf0b7lpogcvjpm0p8qbi6d0342gss0h.apps.googleusercontent.com",
+    redirectUri: Platform.select({
+      ios: "com.jamalfox.travelapp:/oauth2redirect",
+    }),
   });
+  console.log("user info: ", response);
 
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
