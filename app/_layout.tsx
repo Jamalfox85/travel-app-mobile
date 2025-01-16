@@ -25,15 +25,15 @@ WebBrowser.maybeCompleteAuthSession();
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [userInfo, setUserInfo] = useState(null);
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId:
-      "717474575408-6kf0b7lpogcvjpm0p8qbi6d0342gss0h.apps.googleusercontent.com",
-    redirectUri: Platform.select({
-      ios: "com.jamalfox.travelapp:/oauth2redirect",
-    }),
-  });
-  console.log("user info: ", response);
+  // const [userInfo, setUserInfo] = useState(null);
+  // const [request, response, promptAsync] = Google.useAuthRequest({
+  //   clientId:
+  //     "717474575408-6kf0b7lpogcvjpm0p8qbi6d0342gss0h.apps.googleusercontent.com",
+  //   redirectUri: Platform.select({
+  //     ios: "com.jamalfox.travelapp:/oauth2redirect",
+  //   }),
+  // });
+  // console.log("user info: ", response);
 
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
@@ -57,7 +57,7 @@ export default function RootLayout() {
         <Stack.Screen name="TripDetails" />
         <Stack.Screen name="+not-found" />
       </Stack>
-      <Button title="Sign in with Google" onPress={() => promptAsync()} />
+      {/* <Button title="Sign in with Google" onPress={() => promptAsync()} /> */}
       <PortalHost />
     </ThemeProvider>
   );
