@@ -12,7 +12,8 @@ import "react-native-reanimated";
 import "../global.css";
 import { PortalHost } from "@rn-primitives/portal";
 import { Platform } from "react-native";
-
+import { Provider } from "react-redux";
+import store from "@/store";
 import { useColorScheme } from "@/hooks/useColorScheme";
 
 import * as WebBrowser from "expo-web-browser";
@@ -25,16 +26,6 @@ WebBrowser.maybeCompleteAuthSession();
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  // const [userInfo, setUserInfo] = useState(null);
-  // const [request, response, promptAsync] = Google.useAuthRequest({
-  //   clientId:
-  //     "717474575408-6kf0b7lpogcvjpm0p8qbi6d0342gss0h.apps.googleusercontent.com",
-  //   redirectUri: Platform.select({
-  //     ios: "com.jamalfox.travelapp:/oauth2redirect",
-  //   }),
-  // });
-  // console.log("user info: ", response);
-
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
@@ -51,14 +42,15 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="TripDetails" />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      {/* <Button title="Sign in with Google" onPress={() => promptAsync()} /> */}
-      <PortalHost />
-    </ThemeProvider>
+    <Provider store={store}>
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="TripDetails" />
+          <Stack.Screen name="+not-found" />
+        </Stack>
+        <PortalHost />
+      </ThemeProvider>
+    </Provider>
   );
 }

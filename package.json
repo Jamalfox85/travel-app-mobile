@@ -20,6 +20,7 @@
     "@react-native-community/datetimepicker": "8.2.0",
     "@react-native-google-signin/google-signin": "^13.1.0",
     "@react-navigation/native": "^6.0.2",
+    "@reduxjs/toolkit": "^2.5.0",
     "@rn-primitives/collapsible": "^1.1.0",
     "@rn-primitives/dropdown-menu": "^1.1.0",
     "@rn-primitives/popover": "^1.1.0",
@@ -63,6 +64,7 @@
     "react-native-toastify": "^0.2.2",
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "~0.19.13",
+    "react-redux": "^9.2.0",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-react-native": "^1.7.10",
     "toastify-react-native": "^5.0.2"

@@ -12,8 +12,12 @@ import { TravelApiCall } from "@/services/ApiService";
 import TripRecord from "@/components/Home/TripRecord";
 import CreateTripDrawer from "@/components/drawers/CreateTripDrawer";
 
+import { useSelector, useDispatch } from "react-redux";
+import type { RootState } from "@/store";
+
 export default function HomeScreen() {
-  const userId = 1;
+  const userId = useSelector((state: RootState) => state.auth.userId);
+
   const [tripData, setTripData] = useState<Trip[]>([]);
   const [createTripModalVisible, setCreateTripModalVisible] = useState(false);
 
@@ -42,6 +46,7 @@ export default function HomeScreen() {
     >
       <View style={styles.titleContainer}>
         <ToastManager />
+        <Text>{userId}</Text>
         <ThemedText type="title">My Trips</ThemedText>
         {process.env.TRAVEL_API_BASE_URL}
         <Button

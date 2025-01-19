@@ -8,14 +8,15 @@ import ToastManager, { Toast } from "toastify-react-native";
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import { useDispatch } from "react-redux";
+import { setUserId } from "@/store/authSlice";
 import { View, Platform, Button, Text } from "react-native";
 
 import { TravelApiCall } from "@/services/ApiService";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-
+  const dispatch = useDispatch();
   const [userInfo, setUserInfo] = useState(null);
   const [request, response, promptAsync] = Google.useAuthRequest({
     clientId:
@@ -27,11 +28,12 @@ export default function TabLayout() {
 
   const authUserFromInternalDB = async (googleUserInfo: any) => {
     try {
-      await TravelApiCall("/users", "POST", {
+      const internalUserData = await TravelApiCall("/users", "POST", {
         firstName: googleUserInfo.given_name,
         lastName: googleUserInfo.family_name,
         email: googleUserInfo.email,
       });
+      dispatch(setUserId({ userId: internalUserData.UserID }));
       Toast.success("Log in Successful!");
     } catch (error) {
       Toast.error("Error during login.");
@@ -55,8 +57,6 @@ export default function TabLayout() {
           const userInfo = await res.json();
           setUserInfo(userInfo);
           authUserFromInternalDB(userInfo);
-          // Send this info to your backend to create or update the user
-          // saveUserToDatabase(userInfo);
         } catch (error) {
           console.error("Failed to fetch user details:", error);
         }
