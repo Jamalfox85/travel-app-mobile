@@ -10,11 +10,15 @@ import { ThemedText } from "@/components/ThemedText";
 import { Trip } from "@/types";
 import { formatDateFrontEnd } from "@/utils";
 import { useRouter } from "expo-router";
+import { useDispatch } from "react-redux";
+import { setTrip } from "@/store/tripSlice";
 
 export default function TripRecord({ trip }: { trip: Trip }) {
   const router = useRouter();
+  const dispatch = useDispatch();
 
   const navigateToDetails = () => {
+    dispatch(setTrip({ trip: trip }));
     router.push({
       pathname: "/TripDetails",
       params: { trip: JSON.stringify(trip) },
